@@ -1,12 +1,33 @@
 import express from 'express';
-import authController from '../controllers/authController.js';
+import {
+    signup,
+    signin,
+    signout,
+    verifyUser,
+    changePassword,
+    changeForgetedPassword,
+    sendVerification, sendForgotPasswordCode
+} from '../controllers/authController.js';
+
+import { identifier } from '../middlewares/identification.js';
+
+const authRouter = express.Router();
+
+authRouter.post('/signup', signup);
+
+authRouter.post('/signin', signin);
+
+authRouter.post('/signout', identifier, signout);
+
+authRouter.patch("/verification/send", identifier, sendVerification);
+
+authRouter.patch("/verification/verify", identifier, verifyUser);
+
+authRouter.patch("/password", identifier, changePassword);
+
+authRouter.patch("/password/forget", sendForgotPasswordCode);
+
+authRouter.patch("/password/reset", changeForgetedPassword);
 
 
-const router = express.Router();
-
-router.post('/signup', authController.signup);
-
-router.post('/signin', authController.signin);
-
-
-export default router;
+export default authRouter;
