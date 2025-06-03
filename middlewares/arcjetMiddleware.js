@@ -1,7 +1,7 @@
 import arcjet, { shield, detectBot, tokenBucket } from "@arcjet/node";
 import { isSpoofedBot } from "@arcjet/inspect";
-import dotenv from "dotenv";
-dotenv.config();
+
+
 
 const aj = arcjet({
     key: process.env.ARCJET_KEY,
@@ -12,14 +12,15 @@ const aj = arcjet({
             mode: "LIVE",
             allow: [
                 "CATEGORY:SEARCH_ENGINE",
-                "POSTMAN"
+                "POSTMAN",
+                "CURL"
             ],
         }),
         tokenBucket({
             mode: "LIVE",
-            refillRate: 3, // Refill 5 tokens per interval
+            refillRate: 5, // Refill 5 tokens per interval
             interval: 10, // Refill every 10 seconds
-            capacity: 5, // Bucket capacity of 10 tokens
+            capacity: 10, // Bucket capacity of 10 tokens
         }),
     ],
 });
