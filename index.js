@@ -24,8 +24,8 @@ mongoose.connect(process.env.MONGO_URI).then(() => {
     console.log(err);
 });
 
-app.use('/api/v1/auth', arcjectMiddleware, authRouter);
-app.use('/api/v1/posts', arcjectMiddleware, postsRouter);
+app.use('/v1/auth', arcjectMiddleware, authRouter);
+app.use('/v1/posts', arcjectMiddleware, postsRouter);
 
 
 app.get('/', (req, res) => {
