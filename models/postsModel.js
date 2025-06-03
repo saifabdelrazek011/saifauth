@@ -6,7 +6,7 @@ const postSchema = mongoose.Schema({
         required: [true, "Title is required"],
         trim: true,
     },
-    desciption: {
+    description: {
         type: String,
         required: [true, "Description is required"],
         trim: true,
@@ -15,6 +15,10 @@ const postSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
+    },
+    edited: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true

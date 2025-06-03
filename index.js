@@ -6,8 +6,7 @@ import helmet from 'helmet';
 import mongoose from 'mongoose';
 import authRouter from './routers/authRouter.js';
 import arcjectMiddleware from './middlewares/arcjetMiddleware.js';
-
-
+import postsRouter from './routers/postsRouter.js';
 
 dotenv.config();
 
@@ -26,6 +25,8 @@ mongoose.connect(process.env.MONGO_URI).then(() => {
 });
 
 app.use('/api/v1/auth', arcjectMiddleware, authRouter);
+app.use('/api/v1/posts', arcjectMiddleware, postsRouter);
+
 
 app.get('/', (req, res) => {
     res.send('Hello from the server!');
