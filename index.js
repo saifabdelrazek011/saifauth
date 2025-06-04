@@ -17,6 +17,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
+app.set('view engine', 'ejs');
 
 mongoose.connect(process.env.MONGO_URI).then(() => {
     console.log('Connected to MongoDB');
@@ -29,7 +30,7 @@ app.use('/v1/posts', arcjectMiddleware, postsRouter);
 
 
 app.get('/', (req, res) => {
-    res.send('Hello from the server!');
+    res.render('index');
 });
 
 app.listen(process.env.PORT || 3000, () => {
