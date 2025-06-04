@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "../config/env.js";
 
 export const identifier = (req, res, next) => {
     let token;
@@ -14,7 +15,7 @@ export const identifier = (req, res, next) => {
 
     try {
         const userToken = token.split(" ")[1];
-        const jwtVerified = jwt.verify(userToken, process.env.JWT_SECRET);
+        const jwtVerified = jwt.verify(userToken, JWT_SECRET);
         if (jwtVerified) {
             req.user = jwtVerified;
             next();

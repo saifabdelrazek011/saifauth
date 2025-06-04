@@ -7,6 +7,7 @@ import mongoose from 'mongoose';
 import authRouter from './routers/authRouter.js';
 import arcjectMiddleware from './middlewares/arcjetMiddleware.js';
 import postsRouter from './routers/postsRouter.js';
+import { MONGODB_URI, PORT } from './config/env.js';
 
 dotenv.config();
 
@@ -19,7 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.set('view engine', 'ejs');
 
-mongoose.connect(process.env.MONGO_URI).then(() => {
+mongoose.connect(MONGODB_URI).then(() => {
     console.log('Connected to MongoDB');
 }).catch((err) => {
     console.log(err);
@@ -33,6 +34,6 @@ app.get('/', (req, res) => {
     return res.render('index');
 });
 
-app.listen(process.env.PORT || 3000, () => {
-    console.log('Server is running on port ' + process.env.PORT || 3000);
+app.listen(PORT || 3000, () => {
+    console.log('Server is running on port ' + PORT || 3000);
 });

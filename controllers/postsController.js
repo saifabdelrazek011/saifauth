@@ -1,6 +1,5 @@
 import express from 'express';
 import Post from '../models/postsModel.js';
-import { identifier } from '../middlewares/identification.js';
 import { createPostSchema } from '../middlewares/validator.js';
 
 

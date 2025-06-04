@@ -1,9 +1,11 @@
 import jwt from "jsonwebtoken";
+import geoip from 'geoip-lite';
 import { signupSchema, signinSchema, acceptCodeSchema, changeForgetedPasswordSchema, changePasswordSchema, emailSchema } from "../middlewares/validator.js";
 import User from "../models/usersModel.js";
 import transport from '../middlewares/sendMail.js';
 import { doHash, doHashValidation, hmacProcess } from "../utils/hashing.js";
-
+import { JWT_SECRET, JWT_EXEXPIRES_IN, NODE_ENV, HMAC_SECRET, HASH_SALT, EMAIL_ADDRESS, SENDER_NAME } from "../config/env.js";
+import { loginNotificationTemplate } from "../utils/email-template.js";
 
 
 export const signup = async (req, res) => {
@@ -21,7 +23,7 @@ export const signup = async (req, res) => {
             return res.status(401).json({ success: false, message: "User already exists" });
         }
 
-        const hashedPassword = await doHash(password, 13);
+        const hashedPassword = await doHash(password, HASH_SALT);
 
         const newUser = new User({
             firstName,
@@ -113,7 +115,7 @@ export const sendVerification = async (req, res) => {
         const codeValue = Math.floor(1000000 * Math.random()).toString();
 
         let info = await transport.sendMail({
-            from: `SaifAuth verifier<${process.env.NODE_CODE_SENDING_EMAIL_ADDRESS}>`,
+            from: `SaifAuth verifier<${EMAIL_ADDRESS}>`,
             to: existingUser.email,
             subject: "Verify your email",
             html: `<p>Your verification code is <b>${codeValue}</b></p>
@@ -121,7 +123,7 @@ export const sendVerification = async (req, res) => {
         });
 
         if (info.accepted[0] === existingUser.email) {
-            const hashedCodeValue = hmacProcess(codeValue, process.env.HMAC_SECRET);
+            const hashedCodeValue = hmacProcess(codeValue, HMAC_SECRET);
             existingUser.verificationCode = hashedCodeValue;
             existingUser.verificationCodeValidation = Date.now();
             await existingUser.save();
@@ -162,7 +164,7 @@ export const verifyUser = async (req, res) => {
             return res.status(400).json({ success: false, message: "Verification code expired" });
         }
 
-        const hashedCodeValue = hmacProcess(codeValue, process.env.HMAC_SECRET);
+        const hashedCodeValue = hmacProcess(codeValue, HMAC_SECRET);
 
         if (hashedCodeValue === existingUser.verificationCode) {
             existingUser.verified = true;
@@ -208,7 +210,7 @@ export const changePassword = async (req, res) => {
             return res.status(400).json({ success: false, message: "New password cannot be the same as the old password" });
         }
 
-        const hashedNewPassword = await doHash(newPassword, 13);
+        const hashedNewPassword = await doHash(newPassword, HASH_SALT);
 
         existingUser.password = hashedNewPassword;
         await existingUser.save();
@@ -235,7 +237,7 @@ export const sendForgotPasswordCode = async (req, res) => {
         const code = Math.floor(100000 + Math.random() * 900000).toString();
 
         let info = await transport.sendMail({
-            from: `SaifAuth verifier<${process.env.NODE_CODE_SENDING_EMAIL_ADDRESS}>`,
+            from: `${SENDER_NAME}<${EMAIL_ADDRESS}>`,
             to: existingUser.email,
             subject: "Forgot Password Verification Code",
             html: `<p>Your forget password verification code <b>${code}</b></p>
@@ -243,7 +245,7 @@ export const sendForgotPasswordCode = async (req, res) => {
         });
 
         if (info.accepted[0] === existingUser.email) {
-            const hashedCodeValue = hmacProcess(code, process.env.HMAC_SECRET);
+            const hashedCodeValue = hmacProcess(code, HMAC_SECRET);
             existingUser.forgetPasswordCode = hashedCodeValue;
             existingUser.forgetPasswordCodeValidation = Date.now();
             await existingUser.save();
@@ -270,7 +272,7 @@ export const changeForgetedPassword = async (req, res) => {
             return res.status(404).json({ success: false, message: "User does not exist" });
         }
 
-        const hashedNewPassword = await doHash(newPassword, 13);
+        const hashedNewPassword = await doHash(newPassword, HASH_SALT);
 
         if (hashedNewPassword === existingUser.password) {
             return res.status(400).json({ success: false, message: "New password cannot be the same as the old password" });
@@ -281,7 +283,7 @@ export const changeForgetedPassword = async (req, res) => {
 
         }
 
-        const hashedCodeValue = await hmacProcess(providedCode, process.env.HMAC_SECRET);
+        const hashedCodeValue = await hmacProcess(providedCode, HMAC_SECRET);
 
         if (hashedCodeValue !== existingUser.forgetPasswordCode) {
             return res.status(400).json({ success: false, message: "Invalid verification code" });
