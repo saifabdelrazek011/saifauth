@@ -17,6 +17,7 @@ app.use(helmet())
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
+app.set('trust proxy', true);
 
 app.set('view engine', 'ejs');
 

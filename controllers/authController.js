@@ -8,6 +8,33 @@ import { JWT_SECRET, JWT_EXEXPIRES_IN, NODE_ENV, HMAC_SECRET, HASH_SALT, EMAIL_A
 import { loginNotificationTemplate } from "../utils/email-template.js";
 
 
+const getClientIP = (req) => {
+    let ip = req.headers['x-forwarded-for'] ||
+        req.headers['x-real-ip'] ||
+        req.connection.remoteAddress ||
+        req.socket.remoteAddress ||
+        req.ip;
+
+    // Handle IPv6 format (::ffff:192.168.x.x)
+    if (ip.includes('::ffff:')) {
+        ip = ip.split(':').pop();
+    }
+
+    // Handle localhost IPv6
+    if (ip === '::1') return '127.0.0.1';
+
+    return ip;
+};
+
+const getLocationFromIP = (ip) => {
+    const geo = geoip.lookup(ip);
+    if (geo) {
+        return `${geo.city || 'Unknown City'}, ${geo.region || 'Unknown Region'}, ${geo.country || 'Unknown Country'}`;
+    }
+    return 'Unknown Location';
+};
+
+
 export const signup = async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
     try {
@@ -64,20 +91,60 @@ export const signin = async (req, res) => {
         const isPasswordValid = await doHashValidation(password, existingUser.password);
 
         if (!isPasswordValid) {
-            return resjwt.status(401).json({ success: false, message: "Invalid Password" });
+            return res.status(401).json({ success: false, message: "Invalid Password" });
+        }
+
+
+        const ipAddress = await getClientIP(req);
+        const location = await getLocationFromIP(ipAddress);
+        const loginTime = new Date().toLocaleString('en-US', {
+            timeZone: 'UTC',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            showTimeZone: true,
+            timeZoneName: 'short',
+
+        });
+        try {
+            const emailHtml = loginNotificationTemplate(
+                `${existingUser.firstName} ${existingUser.lastName ? existingUser.lastName : ''}`,
+                ipAddress,
+                location,
+                loginTime
+            );
+
+            console.log('Email HTML:', emailHtml);
+            // await transport.sendMail({
+            //     from: `${SENDER_NAME}<${EMAIL_ADDRESS}>`,
+            //     to: existingUser.email,
+            //     subject: "New Login Alert - SaifAuth",
+            //     html: emailHtml,
+            // });
+        } catch (emailError) {
+            console.error('Failed to send login notification email:', emailError);
         }
 
         const token = jwt.sign({
             userId: existingUser._id,
             email: existingUser.email,
             verified: existingUser.verified,
-        }, process.env.JWT_SECRET, { expiresIn: "8h" });
-
-        res.cookie("Authorization", "Bearer " + token, { expires: new Date(Date.now() + 8 * 3600000), httpOnly: process.env.NODE_ENV === "production", secure: process.env.NODE_ENV === "production" }).json({ success: true, token, message: "User logged in successfully" });
-
-        return res.status(200).json({
-            success: true, message: "User logged in successfully", data: { token }
-        });
+        }, JWT_SECRET, { expiresIn: JWT_EXEXPIRES_IN });
+        return res
+            .cookie("Authorization", "Bearer " + token, {
+                expires: new Date(Date.now() + 8 * 3600000),
+                httpOnly: NODE_ENV === "production",
+                secure: NODE_ENV === "production"
+            })
+            .status(200)
+            .json({
+                success: true,
+                message: "User logged in successfully",
+                data: { token }
+            });
 
 
     } catch (error) {
