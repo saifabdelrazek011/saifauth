@@ -30,7 +30,7 @@ app.use('/v1/posts', arcjectMiddleware, postsRouter);
 
 
 app.get('/', (req, res) => {
-    res.render('index');
+    return res.render('index');
 });
 
 app.listen(process.env.PORT || 3000, () => {
