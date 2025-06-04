@@ -127,6 +127,7 @@
     <div class="container">
         <h1>🚀 Welcome to Saif-AUTH API</h1>
         <div class="text-center mb-4">
+            <p>This API is completely open source!</p>
             <a href="https://github.com/saifabdelrazek011/saifauth" class="github-btn" target="_blank">
                 ⭐ Star this project on GitHub
             </a>
@@ -193,9 +194,34 @@
                     <td>User login</td>
                 </tr>
                 <tr>
+                    <td>POST</td>
+                    <td>/auth/signout</td>
+                    <td>User logout</td>
+                </tr>
+                <tr>
+                    <td>PATCH</td>
+                    <td>/auth/verification/send</td>
+                    <td>Send verification code</td>
+                </tr>
+                <tr>
                     <td>PATCH</td>
                     <td>/auth/verification/verify</td>
-                    <td>Verify email</td>
+                    <td>Verify email with code</td>
+                </tr>
+                <tr>
+                    <td>PATCH</td>
+                    <td>/auth/password/forget</td>
+                    <td>Send forgot password code</td>
+                </tr>
+                <tr>
+                    <td>PATCH</td>
+                    <td>/auth/password</td>
+                    <td>Change password (logged in)</td>
+                </tr>
+                <tr>
+                    <td>PATCH</td>
+                    <td>/auth/password/reset</td>
+                    <td>Reset forgotten password</td>
                 </tr>
             </table>
 
@@ -212,6 +238,11 @@
                     <td>Get all posts</td>
                 </tr>
                 <tr>
+                    <td>GET</td>
+                    <td>/posts/:postId</td>
+                    <td>Get a specific post</td>
+                </tr>
+                <tr>
                     <td>POST</td>
                     <td>/posts</td>
                     <td>Create a new post</td>
@@ -220,6 +251,16 @@
                     <td>PUT</td>
                     <td>/posts/:postId</td>
                     <td>Update a post</td>
+                </tr>
+                <tr>
+                    <td>DELETE</td>
+                    <td>/posts/:postId</td>
+                    <td>Delete a post</td>
+                </tr>
+                <tr>
+                    <td>GET</td>
+                    <td>/posts/user/:userId</td>
+                    <td>Get posts by user</td>
                 </tr>
             </table>
         </div>

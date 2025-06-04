@@ -18,7 +18,7 @@ A robust authentication API built with Node.js, Express, and MongoDB that provid
 - **Database**: MongoDB with Mongoose ODM
 - **Authentication**: JWT (JSON Web Tokens)
 - **Validation**: Joi
-- **Email**: Nodemailer with Zoho
+- **Email**: Nodemailer
 - **Security**: Arcjet (rate limiting, bot detection, shield)
 - **Password Hashing**: bcrypt with HMAC
 
@@ -26,7 +26,7 @@ A robust authentication API built with Node.js, Express, and MongoDB that provid
 
 - Node.js (v14 or higher)
 - MongoDB
-- Zoho email account for sending emails
+- email account for sending emails
 
 ## Installation
 
@@ -102,9 +102,9 @@ POST /auth/signup
 ```
 ```json
 {
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "john.doe@example.com",
+  "firstName": "Saif",
+  "lastName": "Abdelrazek",
+  "email": "saif.abdelrazek@example.com",
   "password": "MySecure123!"
 }
 ```
@@ -115,9 +115,9 @@ POST /auth/signup
   "message": "User created successfully",
   "data": {
     "_id": "user_id",
-    "firstName": "John",
-    "lastName": "Doe",
-    "email": "john.doe@example.com",
+    "firstName": "Saif",
+    "lastName": "Abdelrazek",
+    "email": "saif.abdelrazek@example.com",
     "verified": false,
     "createdAt": "2024-01-01T00:00:00.000Z"
   }
@@ -130,7 +130,7 @@ POST /auth/signin
 ```
 ```json
 {
-  "email": "john.doe@example.com",
+  "email": "saif.abdelrazek@example.com",
   "password": "MySecure123!"
 }
 ```
@@ -143,8 +143,8 @@ POST /auth/signin
   "token": "jwt_token_here",
   "user": {
     "_id": "user_id",
-    "firstName": "John",
-    "email": "john.doe@example.com",
+    "firstName": "Saif",
+    "email": "saif.abdelrazek@example.com",
     "verified": true
   }
 }
@@ -156,7 +156,7 @@ PATCH /verification/send
 ```
 ```json
 {
-  "email": "john.doe@example.com"
+  "email": "saif.abdelrazek@example.com"
 }
 ```
 
@@ -166,7 +166,7 @@ PATCH /verification/verify
 ```
 ```json
 {
-  "email": "john.doe@example.com",
+  "email": "saif.abdelrazek@example.com",
   "providedCode": "123456"
 }
 ```
@@ -177,7 +177,7 @@ POST /auth/password/forget
 ```
 ```json
 {
-  "email": "john.doe@example.com"
+  "email": "saif.abdelrazek@example.com"
 }
 ```
 
@@ -187,7 +187,7 @@ PATCh /auth/password/reset
 ```
 ```json
 {
-  "email": "john.doe@example.com",
+  "email": "saif.abdelrazek@example.com",
   "providedCode": "123456",
   "newPassword": "NewSecure123!"
 }
