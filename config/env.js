@@ -15,5 +15,6 @@ export const {
     HMAC_SECRET,
     HASH_SALT,
     ARCJET_ENV,
-    ARCJET_KEY
+    ARCJET_KEY,
+    SURE_MESSAGE,
 } = process.env;

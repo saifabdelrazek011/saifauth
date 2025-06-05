@@ -1,8 +1,10 @@
 import { createHmac } from 'crypto';
 import { compare, hash } from "bcryptjs";
 
+
 export const doHash = (value, saltValue) => {
-    const result = hash(value, saltValue);
+    const salt = parseInt(saltValue);
+    const result = hash(value, salt);
     return result;
 }
 

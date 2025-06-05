@@ -1,11 +1,11 @@
 import jwt from "jsonwebtoken";
 import geoip from 'geoip-lite';
-import { signupSchema, signinSchema, acceptCodeSchema, changeForgetedPasswordSchema, changePasswordSchema, emailSchema } from "../middlewares/validator.js";
+import { signupSchema, signinSchema, deleteAccountSchema, acceptCodeSchema, changeForgetedPasswordSchema, changePasswordSchema, emailSchema, updateUserInfoSchema } from "../middlewares/validator.js";
 import User from "../models/usersModel.js";
 import transport from '../middlewares/sendMail.js';
 import { doHash, doHashValidation, hmacProcess } from "../utils/hashing.js";
-import { JWT_SECRET, JWT_EXEXPIRES_IN, NODE_ENV, HMAC_SECRET, HASH_SALT, EMAIL_ADDRESS, SENDER_NAME } from "../config/env.js";
-import { loginNotificationTemplate } from "../utils/email-template.js";
+import { JWT_SECRET, JWT_EXEXPIRES_IN, NODE_ENV, HMAC_SECRET, HASH_SALT, EMAIL_ADDRESS, SENDER_NAME, SURE_MESSAGE } from "../config/env.js";
+import { loginNotificationTemplate, signupTemplate } from "../utils/email-template.js";
 
 
 const getClientIP = (req) => {
@@ -27,6 +27,14 @@ const getClientIP = (req) => {
 };
 
 const getLocationFromIP = (ip) => {
+    if (ip === '127.0.0.1' || ip.startsWith('192.168.') || ip.startsWith('10.')) {
+        return 'Local Network';
+    }
+
+    // Handle IPv6 localhost
+    if (ip === '::1') {
+        return 'Local Development';
+    }
     const geo = geoip.lookup(ip);
     if (geo) {
         return `${geo.city || 'Unknown City'}, ${geo.region || 'Unknown Region'}, ${geo.country || 'Unknown Country'}`;
@@ -38,17 +46,18 @@ const getLocationFromIP = (ip) => {
 export const signup = async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
     try {
+        const existingUser = await User.findOne({ email });
+
+        if (existingUser) {
+            return res.status(401).json({ success: false, message: "User already exists" });
+        }
+
         const { error, value } = signupSchema.validate({ firstName, lastName, email, password });
 
         if (error) {
             return res.status(400).json({ success: false, message: error.details[0].message });
         }
 
-        const existingUser = await User.findOne({ email });
-
-        if (existingUser) {
-            return res.status(401).json({ success: false, message: "User already exists" });
-        }
 
         const hashedPassword = await doHash(password, HASH_SALT);
 
@@ -62,6 +71,15 @@ export const signup = async (req, res) => {
         const result = await newUser.save();
 
         result.password = undefined;
+
+        const mailMessage = signupTemplate(`${firstName} ${lastName ? lastName : ""}`);
+
+        const info = await transport.sendMail({
+            from: `${SENDER_NAME} <${EMAIL_ADDRESS}>`,
+            to: email,
+            subject: "Welcome to SaifAuth",
+            html: mailMessage
+        });
 
         return res.status(201).json({ success: true, message: "User created successfully", data: result });
 
@@ -372,6 +390,117 @@ export const changeForgetedPassword = async (req, res) => {
             return res.status(200).json({ success: true, message: "Password changed successfully" });
         }
         return res.status(400).json({ success: false, message: "Unexpected error occurred" });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+export const deleteAccount = async (req, res) => {
+    const { email, password, sureMessage } = req.body;
+    const { userId } = req.user;
+    try {
+        const { error, value } = deleteAccountSchema.validate({ email, password, sureMessage });
+        if (error) {
+            return res.status(400).json({ success: false, message: error.details[0].message });
+        }
+        const existingUser = await User.findOne({ email }).select('+password');
+
+        if (!existingUser) {
+            return res.status(404).json({ success: false, message: "User does not exist" });
+        }
+        const passwordMatch = await doHashValidation(password, existingUser.password);
+
+        if (!passwordMatch) {
+            return res.status(400).json({ success: false, message: "Incorrect password" });
+        }
+
+        if (sureMessage !== SURE_MESSAGE) {
+            return res.status(400).json({ success: false, message: "Please type 'I am sure' to confirm" });
+        }
+
+        const compareIds = userId === existingUser._id.toString();
+
+        if (!compareIds) {
+            return res.status(400).json({ success: false, message: "You are not authorized to delete this account" });
+        }
+
+        await User.deleteOne({ _id: userId });
+        return res.status(200).json({ success: true, message: "Account deleted successfully" });
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+export const updateUserInfo = async (req, res) => {
+    const { userId } = req.user;
+    const { firstName, lastName, email } = req.body;
+    try {
+        const { error, value } = updateUserSchema.validate({ firstName, lastName, email });
+        if (error) {
+            return res.status(400).json({ success: false, message: error.details[0].message });
+        }
+        const existingUser = await User.findOne({ email });
+        if (!existingUser) {
+            return res.status(404).json({ success: false, message: "User does not exist" });
+        }
+        const compareIds = userId === existingUser._id.toString();
+        if (!compareIds) {
+            return res.status(400).json({ success: false, message: "You are not authorized to update this account" });
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(userId, { firstName, lastName, email }, { new: true });
+        return res.status(200).json({ success: true, message: "User updated successfully", updatedUser });
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+export const getUser = async (req, res) => {
+    const viewerId = req.user.userId;
+    const { email } = req.body;
+    try {
+        const viewer = await User.findById(viewerId).select('+role');
+
+        if (!viewer) {
+            return res.status(404).json({ success: false, message: "Viewer does not exist" });;
+        }
+
+        if (viewer.role === "superAdmin") {
+            const existingUser = await User.findOne({ email }).select('+role +password');
+            if (!existingUser) {
+                return res.status(404).json({ success: false, message: "User does not exist" });
+            }
+            return res.status(200).json({ success: true, message: "User retrieved successfully", existingUser });
+        } else if (viewer.role === "admin" || viewer.email === email) {
+            const existingUser = await User.find().select('+role +password');
+            if (!existingUser) {
+                return res.status(404).json({ success: false, message: "User does not exist" });
+            }
+            return res.status(200).json({ success: true, message: "Users retrieved successfully", existingUser });
+        } else {
+            return res.status(400).json({ success: false, message: "You are not authorized to view this user" });
+        }
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+export const getAllUsers = async (req, res) => {
+    const viewerId = req.user.userId;
+    try {
+        const viewUser = await User.findById(viewerId).select('+role');
+        if (viewUser.role === "admin") {
+            const existingUsers = await User.find();
+            return res.status(200).json({ success: true, message: "Users retrieved successfully", existingUsers });
+        } else if (viewUser.role === "superAdmin") {
+            const existingUsers = await User.find().select('+role +password');
+            return res.status(200).json({ success: true, message: "Users retrieved successfully", existingUsers });
+        } else {
+            return res.status(400).json({ success: false, message: "You are not authorized to view this user" });
+        }
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });
     }

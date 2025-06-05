@@ -1,8 +1,7 @@
 import Joi from "joi";
+import { SURE_MESSAGE } from "../config/env.js";
 
-export const emailSchema = Joi.string().email({
-    tlds: { allow: ['com', 'net', 'org'] },
-}).required()
+export const emailSchema = Joi.string().email().required()
 
 export const passwordSchema = Joi.string().min(8).max(128).required().pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*(),.?\":{}|<>])[A-Za-z\\d!@#$%^&*(),.?\":{}|<>]{8,}$")).messages({
     'string.pattern.base': 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
@@ -19,11 +18,21 @@ export const signupSchema = Joi.object({
     email: emailSchema,
     password: passwordSchema,
 })
-
+7
 
 export const signinSchema = Joi.object({
     email: emailSchema,
     password: passwordSchema,
+})
+
+export const deleteAccountSchema = Joi.object({
+    email: emailSchema,
+    password: passwordSchema,
+    sureMessage: Joi.string().required().valid(SURE_MESSAGE).trim().messages({
+        'string.empty': 'Sure message is required.',
+        'any.required': 'Sure message is required.',
+    })
+
 })
 
 export const acceptCodeSchema = Joi.object({
@@ -57,3 +66,13 @@ export const createPostSchema = Joi.object({
         'any.required': 'User ID is required.',
     })
 })
+
+export const updateUserInfoSchema = Joi.object({
+    firstName: Joi.string().required().trim().messages({
+        'string.empty': 'First name is required.',
+        'any.required': 'First name is required.',
+    }),
+    lastName: Joi.string(),
+    email: emailSchema
+}
+)

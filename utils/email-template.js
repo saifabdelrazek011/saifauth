@@ -1,7 +1,7 @@
-export const signupTemplate = (firstName) => {
+export const signupTemplate = (userName) => {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2>Welcome to SaifAuth, ${firstName}!</h2>
+      <h2>Welcome to SaifAuth, ${userName}!</h2>
       <p>Thank you for signing up with SaifAuth. We're excited to have you on board!</p>
       <p>Your account is now active, and you can start using SaifAuth to manage your account and access all its features.</p>
       <p>If you have any questions or need assistance, feel free to reach out to our support team.</p>

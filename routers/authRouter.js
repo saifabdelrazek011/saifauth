@@ -6,10 +6,16 @@ import {
     verifyUser,
     changePassword,
     changeForgetedPassword,
-    sendVerification, sendForgotPasswordCode
+    sendVerification,
+    sendForgotPasswordCode,
+    deleteAccount,
+    updateUserInfo,
+    getUser,
+    getAllUsers
 } from '../controllers/authController.js';
 
 import { identifier } from '../middlewares/identification.js';
+import { get } from 'mongoose';
 
 const authRouter = express.Router();
 
@@ -28,6 +34,14 @@ authRouter.patch("/password", identifier, changePassword);
 authRouter.patch("/password/forget", sendForgotPasswordCode);
 
 authRouter.patch("/password/reset", changeForgetedPassword);
+
+authRouter.delete("/users/one", identifier, deleteAccount);
+
+authRouter.patch("/users/one", identifier, updateUserInfo);
+
+authRouter.get("/users/one", identifier, getUser)
+
+authRouter.get("/users/all", identifier, getAllUsers);
 
 
 export default authRouter;
