@@ -136,12 +136,12 @@ export const signin = async (req, res) => {
             );
 
             console.log('Email HTML:', emailHtml);
-            // await transport.sendMail({
-            //     from: `${SENDER_NAME}<${EMAIL_ADDRESS}>`,
-            //     to: existingUser.email,
-            //     subject: "New Login Alert - SaifAuth",
-            //     html: emailHtml,
-            // });
+            await transport.sendMail({
+                from: `${SENDER_NAME}<${EMAIL_ADDRESS}>`,
+                to: existingUser.email,
+                subject: "New Login Alert - SaifAuth",
+                html: emailHtml,
+            });
         } catch (emailError) {
             console.error('Failed to send login notification email:', emailError);
         }
