@@ -82,6 +82,8 @@ npm start
 | PATCH | `/auth/password/forget` | Send forgot password code | No |
 | PATCH | `/auth/password` | Change password (logged in) | Yes |
 | PATCH | `/auth/password/reset` | Reset forgotten password | No |
+| GET | `/auth/users/one` | Get specific user info | Yes |
+| GET | `/auth/users/all` | Get all users (admin only) | Yes |
 
 ### Posts Routes
 | Method | Endpoint | Description | Authentication Required |
@@ -128,12 +130,7 @@ POST /auth/signup
 ```bash
 POST /auth/signin
 ```
-```json
-{
-  "email": "saif.abdelrazek@example.com",
-  "password": "MySecure123!"
-}
-```
+
 
 **Response:**
 ```json
@@ -147,6 +144,20 @@ POST /auth/signin
     "email": "saif.abdelrazek@example.com",
     "verified": true
   }
+}
+
+```
+
+### Get All Users (Admin Only)
+```bash
+
+GET /auth/users/all
+Authorization: Bearer your_jwt_token
+
+```json
+{
+  "email": "saif.abdelrazek@example.com",
+  "password": "MySecure123!"
 }
 ```
 
